@@ -26,6 +26,8 @@ import org.bytedeco.javacv.JavaCV;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import org.opencv.core.Core;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
 import org.opencv.imgproc.Imgproc;
 
 public class LoadAndDisplay {
@@ -126,7 +128,7 @@ public class LoadAndDisplay {
 		// taille image
 		System.out.println("image" + image.cols() + "	x	" + image.rows());
 		Show(image, "img");
-		waitKey(0); // Wait for a keystroke in the window
+		//waitKey(0); // Wait for a keystroke in the window
 
 		// FLIP IMAGE
 		Mat flippedImage = imread("data/tower.jpg", 1);
@@ -145,20 +147,15 @@ public class LoadAndDisplay {
 
 		// TEST GETMYHISTOGRAM
 		Float[] toPrint = getMyHistogram(image);
-		for (Float fl : toPrint) {
-			System.out.print(fl + " ");
-		}
-		System.out.println();
-		System.out.println("Hitogramme a la mano");
-
-		TimeUnit.SECONDS.sleep(1);
 
 		showHistogram(toPrint, "ThisIsHistogram");
 		
 		
-	    Mat hist_1 = new Mat();
+	    //Mat hist_1 = new Mat();
+	   // MatOfFloat ranges = new MatOfFloat(0f, 256f);
+	    //MatOfInt histSize = new MatOfInt(25);
 
-		//Imgproc.calcHist(Arrays.asList(image), new Mat[0], new Mat(), hist_1, new Mat(25), ranges);
+	    //Imgproc.calcHist(Arrays.asList(image), new MatOfInt[0], new Mat(), hist_1, histSize, ranges);
 		//Float[] toPrint2 = calcHist(image);
 
 

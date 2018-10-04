@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
@@ -22,6 +23,7 @@ import org.bytedeco.javacv.JavaCV;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import org.opencv.core.Core;
+import org.opencv.imgproc.Imgproc;
 
 public class LoadAndDisplay {
 
@@ -122,6 +124,14 @@ public class LoadAndDisplay {
 		TimeUnit.SECONDS.sleep(1);
 
 		showHistogram(toPrint, "ThisIsHistogram");
+		
+		
+	    Mat hist_1 = new Mat();
+
+
+		Imgproc.calcHist(Arrays.asList(image), channels, mask, hist, histSize, ranges);
+		//Float[] toPrint2 = calcHist(image);
+
 
 	}
 

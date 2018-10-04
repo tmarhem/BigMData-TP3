@@ -9,6 +9,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
@@ -35,6 +38,8 @@ public class LoadAndDisplay {
 		canvas.showImage(converter.convert(mat));
 
 	}
+	
+	
 
 	/*
 	 * Return histogram for a Mat objet as a array of Float
@@ -42,16 +47,31 @@ public class LoadAndDisplay {
 	public static Float[] getMyHistogram(Mat image) {
 		// HISTOGRAMME
 		UByteIndexer idx = (UByteIndexer) image.createIndexer();
-		ArrayList<Float> tempResults = new ArrayList<Float>();
-		String[] results;
+		TreeMap<Integer,Integer> tempResults = new TreeMap<Integer,Integer>();
+		
+		for(int i=0; i<=255; i++) {
+			tempResults.put(i, 0);
+		}
+		
+		Float[] results = new Float[256];
 
 		for (int i = 0; i < image.rows(); i++) {
 			for (int j = 0; j < image.cols(); j++) {
-				tempResults.add((float) idx.get(i, j));
+				int pix = idx.get(i,j);
+				if(!tempResults.containsKey(pix)) {
+					tempResults.put(pix, 1 );
+				} else {
+					tempResults.replace(pix, (tempResults.get(pix)+1 ));
+				}
 			}
 		}
+		
 		System.out.println("HISTOGRAMME A LA MANO");
-		return tempResults.toArray(new Float[0]);
+		for(Entry<Integer,Integer> e : tempResults.entrySet()) {
+			System.out.println(e.getKey()+" "+e.getValue());
+			results[e.getKey()] = e.getValue().floatValue();
+		}
+		return results;
 	}
 
 	public static void showHistogram(Float[] hist, String caption) {
@@ -62,7 +82,7 @@ public class LoadAndDisplay {
 		// Set highest point to 90% of the number of bins
 		
 		
-		double scale = 0.9 / 256 * height;		
+		double scale = 0.9 / max(hist)*height;		
 		
 		// Create a color image to draw on
 		BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -84,10 +104,20 @@ public class LoadAndDisplay {
 		canvasF.showImage(canvas);
 	}
 
+	private static double max(Float[] hist) {
+		Float max=(float) 0;
+		for(Float f : hist) {
+			if (f>max) max=f;
+		}
+		return max;
+	}
+
+
+
 	public static void main(String[] args) throws InterruptedException {
 
 		//
-		Mat image = imread("data/tower.jpg", 1);
+		Mat image = imread("data/group.jpg", 1);
 		if (image == null || image.empty()) {
 			System.out.println("fail");
 			return;
@@ -128,8 +158,7 @@ public class LoadAndDisplay {
 		
 	    Mat hist_1 = new Mat();
 
-
-		Imgproc.calcHist(Arrays.asList(image), channels, mask, hist, histSize, ranges);
+		//Imgproc.calcHist(Arrays.asList(image), new Mat[0], new Mat(), hist_1, new Mat(25), ranges);
 		//Float[] toPrint2 = calcHist(image);
 
 

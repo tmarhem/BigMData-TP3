@@ -1,4 +1,8 @@
 import static org.bytedeco.javacpp.opencv_highgui.WINDOW_AUTOSIZE;
+import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+
+
 import static org.bytedeco.javacpp.opencv_highgui.imshow;
 import static org.bytedeco.javacpp.opencv_highgui.namedWindow;
 import static org.bytedeco.javacpp.opencv_highgui.waitKey;
@@ -76,6 +80,9 @@ public class LoadAndDisplay {
 		return results;
 	}
 
+	/*
+	 * Draw Histogram
+	 */
 	public static void showHistogram(Float[] hist, String caption) {
 		int numberOfBins = 256;
 		// Output image size
@@ -150,6 +157,14 @@ public class LoadAndDisplay {
 
 		showHistogram(toPrint, "ThisIsHistogram");
 		
+		//Need MAt conversion
+		//Mat backToMat = new Mat();
+		//UByteIndexer idx = (UByteIndexer) backToMat.createIndexer();
+		
+		//Comvertir le format en CV_32F ???
+		
+		double d = compareHist(image,image,1);
+		System.out.println(String.valueOf(d));
 		
 	    //Mat hist_1 = new Mat();
 	   // MatOfFloat ranges = new MatOfFloat(0f, 256f);

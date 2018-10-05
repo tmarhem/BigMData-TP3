@@ -30,28 +30,61 @@ import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
 
 public class LoadAndDisplay {
 
 	public static String getClosestHist(String reference, String[] imagesNamesArray) {
-		Mat matReference = imread("data/" + reference + ".jpg", 1);	
+		Mat matReference = imread("data/" + reference + ".jpg", 1);
 		matReference = myCalcHist(matReference);
-		
+
 		String bestMatch = null;
 		double bestScore = 999999999;
-		
-		for(String s : imagesNamesArray) {
-			Mat applicant = imread("data/" + s + ".jpg", 1);	
+
+		for (String s : imagesNamesArray) {
+			Mat applicant = imread("data/" + s + ".jpg", 1);
 			applicant = myCalcHist(applicant);
-			if(compareHist(matReference, applicant,1)<bestScore) {
+			if (compareHist(matReference, applicant, 1) < bestScore) {
 				bestMatch = String.valueOf(s);
-				bestScore = compareHist(matReference, applicant,1);
+				bestScore = compareHist(matReference, applicant, 1);
 			}
-			System.out.println("Distance "+reference+"-"+s+" : "+compareHist(matReference, applicant,1));
+			System.out.println("Distance " + reference + "-" + s + " : " + compareHist(matReference, applicant, 1));
 		}
 		return bestMatch;
 	}
 	
+	/*
+	 * Template matching part
+	 */
+	public void templateMatching() {
+		Mat image1 = imread("data/church01.jpg", 1);
+		Mat image2 = imread("data/church03.jpg", 1);
+//define	a	template
+		Mat target = new Mat(image1);
+		Show(target, "Template");
+		// define search region
+		Mat roi = new Mat(image2);
+		// perform template matching
+		Mat result = new Mat();
+		matchTemplate(roi, // search region
+				target, // template
+				result, // result
+				CV_TM_SQDIFF);
+		// similarity measure
+		// find most similar location
+		double[] minVal = new double[1];
+		double[] maxVal = new double[1];
+		Point minPt = new Point();
+		Point maxPt = new Point();
+		//minMaxLoc(result, minVal, maxVal, minPt, maxPt, null);
+		//System.out.println("minPt	=	(" + minPt.x() + ",	" + maxPt.y() + ")");
+		// draw rectangle at most similar location
+		// at minPt in this case
+		//rectangle(roi, new Rect(minPt.x(), minPt.y(), target.cols(), target.rows()), new Scalar(255, 255, 255, 0));
+		Show(roi, "Best	match");
+	}
+
 	/*
 	 * Displays image
 	 */
@@ -64,25 +97,23 @@ public class LoadAndDisplay {
 
 	}
 
-	
 	/*
 	 * Return Mat histogram from openCV type, in 3D
 	 */
 	public static Mat myCalcHist(Mat image) {
 
-        // Compute histogram
-        final int[] channels = new int[]{0, 1, 2};
-        final Mat mask = new Mat();
-        final Mat hist = new Mat();
-        final int[] histSize = new int[]{8, 8, 8};
-        final float[] histRange = new float[]{0f, 255f};
-        IntPointer intPtrChannels = new IntPointer(channels);
-        IntPointer intPtrHistSize = new IntPointer(histSize);
-        final PointerPointer<FloatPointer> ptrPtrHistRange = new PointerPointer<>(histRange, histRange, histRange);
-        calcHist(image, 1, intPtrChannels, mask, hist, 3, intPtrHistSize, ptrPtrHistRange, true, false);
-        return hist;
-    }
-
+		// Compute histogram
+		final int[] channels = new int[] { 0, 1, 2 };
+		final Mat mask = new Mat();
+		final Mat hist = new Mat();
+		final int[] histSize = new int[] { 8, 8, 8 };
+		final float[] histRange = new float[] { 0f, 255f };
+		IntPointer intPtrChannels = new IntPointer(channels);
+		IntPointer intPtrHistSize = new IntPointer(histSize);
+		final PointerPointer<FloatPointer> ptrPtrHistRange = new PointerPointer<>(histRange, histRange, histRange);
+		calcHist(image, 1, intPtrChannels, mask, hist, 3, intPtrHistSize, ptrPtrHistRange, true, false);
+		return hist;
+	}
 
 	/*
 	 * Return histogram for a Mat objet as a array of Float
@@ -110,8 +141,8 @@ public class LoadAndDisplay {
 		}
 
 		System.out.println("HISTOGRAMME A LA MANO");
-		//for(Entry<Integer,Integer> e : tempResults.entrySet()) {
-			//System.out.println(e.getKey()+" "+e.getValue());
+		// for(Entry<Integer,Integer> e : tempResults.entrySet()) {
+		// System.out.println(e.getKey()+" "+e.getValue());
 
 		for (Entry<Integer, Integer> e : tempResults.entrySet()) {
 			System.out.println(e.getKey() + " " + e.getValue());
@@ -163,49 +194,45 @@ public class LoadAndDisplay {
 		}
 		return max;
 	}
-	
-	private static String compareListHist(Mat image, HashMap<String,Mat> list_image) {
+
+	private static String compareListHist(Mat image, HashMap<String, Mat> list_image) {
 		String nom = "";
 		double distance = Integer.MAX_VALUE;
-		//System.out.println("valeur de base: " + distance);
-		for (Entry<String, Mat> entry : list_image.entrySet()) {		
-			double d = compareHist(myCalcHist(image),myCalcHist(entry.getValue()),1);
-			//System.out.println(d);
-			System.out.println("Distance avec " + entry.getKey() + " "+ d);
-			if(distance > d) {
-				//System.out.println("+1");
+		// System.out.println("valeur de base: " + distance);
+		for (Entry<String, Mat> entry : list_image.entrySet()) {
+			double d = compareHist(myCalcHist(image), myCalcHist(entry.getValue()), 1);
+			// System.out.println(d);
+			System.out.println("Distance avec " + entry.getKey() + " " + d);
+			if (distance > d) {
+				// System.out.println("+1");
 				distance = d;
 				nom = entry.getKey();
 			}
 		}
 		return "Distance la plus proche :" + nom + " distance : " + distance;
-		
+
 	}
 
-	
 	public static void main(String[] args) throws InterruptedException {
 
-		String[] namesArray = {"baboon1", "baboon2", "baboon3", "baboon4","boldt","boldt_salt"};
+		String[] namesArray = { "baboon1", "baboon2", "baboon3", "baboon4", "boldt", "boldt_salt" };
 		LinkedList<String> imagesNames = new LinkedList<String>();
 		imagesNames.addAll(Arrays.asList(namesArray));
-		HashMap<String,Mat> imagesHash = new HashMap<String,Mat>();
-		
-		for(String s : imagesNames) {
+		HashMap<String, Mat> imagesHash = new HashMap<String, Mat>();
+
+		for (String s : imagesNames) {
 			System.out.println(s);
-			imagesHash.putIfAbsent(s, imread("data/" + s + ".jpg", 1));		
-			if(imagesHash.get(s)==null || imagesHash.get(s).empty()) 
-			{
-				System.out.println("failed to load image "+s);
+			imagesHash.putIfAbsent(s, imread("data/" + s + ".jpg", 1));
+			if (imagesHash.get(s) == null || imagesHash.get(s).empty()) {
+				System.out.println("failed to load image " + s);
 			}
 		}
-		
+
 		Mat image = imread("data/group.jpg", 1);
-		if (image == null || image.empty()) 
-		{
+		if (image == null || image.empty()) {
 			System.out.println("fail");
 			return;
 		}
-
 
 		// taille image
 //		System.out.println("image" + image.cols() + "	x	" + image.rows());
@@ -215,49 +242,48 @@ public class LoadAndDisplay {
 //
 
 		// TEST GETMYHISTOGRAM
-		
+
 		Float[] toPrint = getMyHistogram(image);
 		showHistogram(toPrint, "Group");
-		
-		double d1 = compareHist(myCalcHist(imagesHash.get("baboon1")),myCalcHist(imagesHash.get("baboon2")),1);
+
+		double d1 = compareHist(myCalcHist(imagesHash.get("baboon1")), myCalcHist(imagesHash.get("baboon2")), 1);
 
 		System.out.println("Distance baboon1-2 : " + String.valueOf(d1));
 		System.out.println();
 
-		
-		String[] applicants = { "baboon1", "baboon2", "baboon3", "group"};
-		System.out.println(String.valueOf( getClosestHist( "baboon4" , applicants )));
-
+		String[] applicants = { "baboon1", "baboon2", "baboon3", "group" };
+		System.out.println(String.valueOf(getClosestHist("baboon4", applicants)));
 
 		Mat image_compar = imread("data/baboon4.jpg", 1);
-		if (image == null || image.empty()) 
-		{
+		if (image == null || image.empty()) {
 			System.out.println("fail");
 			return;
 		}
-		imagesHash.remove("baboon4"); //sinon score = 0
-		
+		imagesHash.remove("baboon4"); // sinon score = 0
+
 		String leplusproche = compareListHist(image_compar, imagesHash);
-		
+
 		System.out.println(String.valueOf(leplusproche));
-		
+
 		/////////////////////////// FLIP IMAGE
-		// 		Mat flippedImage = imread("data/tower.jpg", 1);
-		// 		flip(image, flippedImage, -1);
+		// Mat flippedImage = imread("data/tower.jpg", 1);
+		// flip(image, flippedImage, -1);
 		////////////////////////////////////////////////
-		
+
 		/////////////////////////// CIRCLE IMAGE
-		//		
-		//		 Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
-		//		 Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
-		//		 8-connected line 0); // shift
-		//		  
-		//		 opencv_imgproc.putText(imageCircle, // "Lake	and	Tower", // new Point(460,
-		//		 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, // 8,false); // Show(imageCircle, "mark");
-		//		 
+		//
+		// Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
+		// Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
+		// 8-connected line 0); // shift
+		//
+		// opencv_imgproc.putText(imageCircle, // "Lake and Tower", // new Point(460,
+		// 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, //
+		/////////////////////////// 8,false); // Show(imageCircle, "mark");
+		//
 		////////////////////////////////////////////////
-		
+
 	}
 
 	
+
 }

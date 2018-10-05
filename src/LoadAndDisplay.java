@@ -33,6 +33,25 @@ import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 public class LoadAndDisplay {
 
+	public static String getClosestHist(String reference, String[] imagesNamesArray) {
+		Mat matReference = imread("data/" + reference + ".jpg", 1);	
+		matReference = myCalcHist(matReference);
+		
+		String bestMatch = null;
+		double bestScore = 999999999;
+		
+		for(String s : imagesNamesArray) {
+			Mat applicant = imread("data/" + s + ".jpg", 1);	
+			applicant = myCalcHist(applicant);
+			if(compareHist(matReference, applicant,1)<bestScore) {
+				bestMatch = String.valueOf(s);
+				bestScore = compareHist(matReference, applicant,1);
+			}
+			System.out.println("Distance "+reference+"-"+s+" : "+compareHist(matReference, applicant,1));
+		}
+		return bestMatch;
+	}
+	
 	/*
 	 * Displays image
 	 */
@@ -171,22 +190,26 @@ public class LoadAndDisplay {
 
 
 		// taille image
-		System.out.println("image" + image.cols() + "	x	" + image.rows());
-		Show(image, "img");
-		Show(imagesHash.get("boldt"), "boldt");
-		Show(imagesHash.get("baboon1"), "baboon");
-
+//		System.out.println("image" + image.cols() + "	x	" + image.rows());
+//		Show(image, "img");
+//		Show(imagesHash.get("boldt"), "boldt");
+//		Show(imagesHash.get("baboon1"), "baboon");
+//
 
 		// TEST GETMYHISTOGRAM
 		
 		Float[] toPrint = getMyHistogram(image);
-		showHistogram(toPrint, "ThisIsHistogram");
+		showHistogram(toPrint, "Group");
 		
-		double d = compareHist(myCalcHist(imagesHash.get("baboon1")),myCalcHist(imagesHash.get("boldt")),1);
 		double d1 = compareHist(myCalcHist(imagesHash.get("baboon1")),myCalcHist(imagesHash.get("baboon2")),1);
 
-		System.out.println(String.valueOf(d));
-		System.out.println(String.valueOf(d1));
+		System.out.println("Distance baboon1-2 : " + String.valueOf(d1));
+		System.out.println();
+
+		
+		String[] applicants = { "baboon1", "baboon2", "baboon3", "group"};
+		System.out.println(String.valueOf( getClosestHist( "baboon4" , applicants )));
+
 
 		
 		

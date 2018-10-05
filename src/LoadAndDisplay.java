@@ -229,28 +229,6 @@ public class LoadAndDisplay {
 		//		 
 		////////////////////////////////////////////////
 		
-
-	    //Imgproc.calcHist(Arrays.asList(image), new MatOfInt[0], new Mat(), hist_1, histSize, ranges);
-		//Float[] toPrint2 = calcHist(image);
-		/*
-		for (Float fl : toPrint) {
-			System.out.print(fl + " ");
-		}
-		System.out.println();
-		System.out.println("Hitogramme a la mano");
-*/		
-		System.out.println("test");
-		//TimeUnit.SECONDS.sleep(1);
-
-		showHistogram(toPrint, "ThisIsHistogram");
-		TimeUnit.SECONDS.sleep(3);
-
-		// Mat hist_1 = new Mat();
-
-		// Imgproc.calcHist(Arrays.asList(image), new Mat[0], new Mat(), hist_1, new
-		// Mat(25), ranges);
-		// Float[] toPrint2 = calcHist(image);
-			
 	}
 
 	

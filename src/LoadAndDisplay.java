@@ -144,6 +144,24 @@ public class LoadAndDisplay {
 		}
 		return max;
 	}
+	
+	private static String compareListHist(Mat image, HashMap<String,Mat> list_image) {
+		String nom = "";
+		double distance = Integer.MAX_VALUE;
+		//System.out.println("valeur de base: " + distance);
+		for (Entry<String, Mat> entry : list_image.entrySet()) {		
+			double d = compareHist(myCalcHist(image),myCalcHist(entry.getValue()),1);
+			//System.out.println(d);
+			System.out.println("Distance avec " + entry.getKey() + " "+ d);
+			if(distance > d) {
+				//System.out.println("+1");
+				distance = d;
+				nom = entry.getKey();
+			}
+		}
+		return "Distance la plus proche :" + nom + " distance : " + distance;
+		
+	}
 
 	
 	public static void main(String[] args) throws InterruptedException {
@@ -188,7 +206,17 @@ public class LoadAndDisplay {
 		System.out.println(String.valueOf(d));
 		System.out.println(String.valueOf(d1));
 
+		Mat image_compar = imread("data/baboon4.jpg", 1);
+		if (image == null || image.empty()) 
+		{
+			System.out.println("fail");
+			return;
+		}
+		imagesHash.remove("baboon4"); //sinon score = 0
 		
+		String leplusproche = compareListHist(image_compar, imagesHash);
+		
+		System.out.println(String.valueOf(leplusproche));
 		
 		/////////////////////////// FLIP IMAGE
 		// 		Mat flippedImage = imread("data/tower.jpg", 1);

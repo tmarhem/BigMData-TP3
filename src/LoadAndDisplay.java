@@ -70,7 +70,7 @@ public class LoadAndDisplay {
 		
 		System.out.println("HISTOGRAMME A LA MANO");
 		for(Entry<Integer,Integer> e : tempResults.entrySet()) {
-			System.out.println(e.getKey()+" "+e.getValue());
+			//System.out.println(e.getKey()+" "+e.getValue());
 			results[e.getKey()] = e.getValue().floatValue();
 		}
 		return results;
@@ -131,7 +131,7 @@ public class LoadAndDisplay {
 		//waitKey(0); // Wait for a keystroke in the window
 
 		// FLIP IMAGE
-		Mat flippedImage = imread("data/tower.jpg", 1);
+		// Mat flippedImage = imread("data/tower.jpg", 1);
 		// flip(image, flippedImage, -1);
 
 		// CIRCLE IMAGE

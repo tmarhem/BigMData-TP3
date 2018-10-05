@@ -4,6 +4,8 @@ import static org.bytedeco.javacpp.opencv_highgui.namedWindow;
 import static org.bytedeco.javacpp.opencv_highgui.waitKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.bytedeco.javacpp.opencv_core.CvHistogram;
@@ -138,11 +140,26 @@ public class LoadAndDisplay {
 		return max;
 	}
 
+	
 	public static void main(String[] args) throws InterruptedException {
 
-		//
+		String[] namesArray = {"baboon1", "baboon2", "baboon3", "baboon4","boldt","boldt_salt"};
+		LinkedList<String> imagesNames = new LinkedList<String>();
+		imagesNames.addAll(Arrays.asList(namesArray));
+		HashMap<String,Mat> imagesHash = new HashMap<String,Mat>();
+		
+		for(String s : imagesNames) {
+			System.out.println(s);
+			imagesHash.putIfAbsent(s, imread("data/" + s + ".jpg", 1));		
+			if(imagesHash.get(s)==null || imagesHash.get(s).empty()) 
+			{
+				System.out.println("failed to load image "+s);
+			}
+		}
+		
 		Mat image = imread("data/group.jpg", 1);
-		if (image == null || image.empty()) {
+		if (image == null || image.empty()) 
+		{
 			System.out.println("fail");
 			return;
 		}
@@ -150,40 +167,40 @@ public class LoadAndDisplay {
 		// taille image
 		System.out.println("image" + image.cols() + "	x	" + image.rows());
 		Show(image, "img");
-		//waitKey(0); // Wait for a keystroke in the window
+		Show(imagesHash.get("boldt"), "boldt");
+		Show(imagesHash.get("baboon1"), "baboon");
 
-		// FLIP IMAGE
-		// Mat flippedImage = imread("data/tower.jpg", 1);
-		// flip(image, flippedImage, -1);
-
-		// CIRCLE IMAGE
-		/*
-		 * Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
-		 * Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
-		 * 8-connected line 0); // shift
-		 * 
-		 * opencv_imgproc.putText(imageCircle, // "Lake	and	Tower", // new Point(460,
-		 * 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, // 8,
-		 * // false); // Show(imageCircle, "mark");
-		 */
 
 		// TEST GETMYHISTOGRAM
 		Float[] toPrint = getMyHistogram(image);
-
 		showHistogram(toPrint, "ThisIsHistogram");
 		
-		
-		double d = compareHist(myCalcHist(image),myCalcHist(image),1);
+		double d = compareHist(myCalcHist(imagesHash.get("baboon1")),myCalcHist(imagesHash.get("boldt")),1);
+		double d1 = compareHist(myCalcHist(imagesHash.get("baboon1")),myCalcHist(imagesHash.get("baboon2")),1);
+
 		System.out.println(String.valueOf(d));
+		System.out.println(String.valueOf(d1));
+
+		
+		
+		/////////////////////////// FLIP IMAGE
+		// 		Mat flippedImage = imread("data/tower.jpg", 1);
+		// 		flip(image, flippedImage, -1);
+		////////////////////////////////////////////////
+		
+		/////////////////////////// CIRCLE IMAGE
+		//		
+		//		 Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
+		//		 Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
+		//		 8-connected line 0); // shift
+		//		  
+		//		 opencv_imgproc.putText(imageCircle, // "Lake	and	Tower", // new Point(460,
+		//		 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, // 8,false); // Show(imageCircle, "mark");
+		//		 
+		////////////////////////////////////////////////
+		
+
 				
-	    //Mat hist_1 = new Mat();
-	   // MatOfFloat ranges = new MatOfFloat(0f, 256f);
-	    //MatOfInt histSize = new MatOfInt(25);
-
-	    //Imgproc.calcHist(Arrays.asList(image), new MatOfInt[0], new Mat(), hist_1, histSize, ranges);
-		//Float[] toPrint2 = calcHist(image);
-
-
 	}
 
 	

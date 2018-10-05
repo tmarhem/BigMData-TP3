@@ -169,8 +169,6 @@ public class LoadAndDisplay {
 			return;
 		}
 
-		//Mat gray = new Mat(image.size());
-		//opencv_imgproc.cvtColor(image, gray, opencv_imgproc.CV_BGR2GRAY);
 
 		// taille image
 		System.out.println("image" + image.cols() + "	x	" + image.rows());
@@ -178,27 +176,6 @@ public class LoadAndDisplay {
 		Show(imagesHash.get("boldt"), "boldt");
 		Show(imagesHash.get("baboon1"), "baboon");
 
-
-		//waitKey(0); // Wait for a keystroke in the window
-
-		// FLIP IMAGE
-
-		// Mat flippedImage = imread("data/tower.jpg", 1);
-
-		//Mat flippedImage = imread("data/tower.jpg", 1);
-
-		// flip(image, flippedImage, -1);
-
-		// CIRCLE IMAGE
-		/*
-		 * Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
-		 * Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
-		 * 8-connected line 0); // shift
-		 * 
-		 * opencv_imgproc.putText(imageCircle, // "Lake	and	Tower", // new Point(460,
-		 * 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, // 8,
-		 * // false); // Show(imageCircle, "mark");
-		 */
 
 		// TEST GETMYHISTOGRAM
 		
@@ -229,28 +206,6 @@ public class LoadAndDisplay {
 		//		 
 		////////////////////////////////////////////////
 		
-
-	    //Imgproc.calcHist(Arrays.asList(image), new MatOfInt[0], new Mat(), hist_1, histSize, ranges);
-		//Float[] toPrint2 = calcHist(image);
-		/*
-		for (Float fl : toPrint) {
-			System.out.print(fl + " ");
-		}
-		System.out.println();
-		System.out.println("Hitogramme a la mano");
-*/		
-		System.out.println("test");
-		//TimeUnit.SECONDS.sleep(1);
-
-		showHistogram(toPrint, "ThisIsHistogram");
-		TimeUnit.SECONDS.sleep(3);
-
-		// Mat hist_1 = new Mat();
-
-		// Imgproc.calcHist(Arrays.asList(image), new Mat[0], new Mat(), hist_1, new
-		// Mat(25), ranges);
-		// Float[] toPrint2 = calcHist(image);
-			
 	}
 
 	

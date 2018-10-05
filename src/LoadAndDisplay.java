@@ -1,41 +1,39 @@
 import static org.bytedeco.javacpp.opencv_highgui.WINDOW_AUTOSIZE;
-import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-
-
 import static org.bytedeco.javacpp.opencv_highgui.imshow;
 import static org.bytedeco.javacpp.opencv_highgui.namedWindow;
 import static org.bytedeco.javacpp.opencv_highgui.waitKey;
-import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.bytedeco.javacpp.opencv_core.CvHistogram;
+import org.bytedeco.javacv.JavaCV;
+
+import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
-
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
-
-import org.bytedeco.javacpp.opencv_core.CvHistogram;
+import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.IntPointer;
+import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
 import org.bytedeco.javacv.CanvasFrame;
-import org.bytedeco.javacv.JavaCV;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
-import org.opencv.core.Core;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.imgproc.Imgproc;
 
 public class LoadAndDisplay {
 
+	/*
+	 * Displays image
+	 */
 	public static void Show(Mat mat, String title) {
 		//
 		ToMat converter = new OpenCVFrameConverter.ToMat();
@@ -45,7 +43,23 @@ public class LoadAndDisplay {
 
 	}
 	
-	
+	/*
+	 * Return Mat histogram from openCV type, in 3D
+	 */
+	public static Mat myCalcHist(Mat image) {
+
+        // Compute histogram
+        final int[] channels = new int[]{0, 1, 2};
+        final Mat mask = new Mat();
+        final Mat hist = new Mat();
+        final int[] histSize = new int[]{8, 8, 8};
+        final float[] histRange = new float[]{0f, 255f};
+        IntPointer intPtrChannels = new IntPointer(channels);
+        IntPointer intPtrHistSize = new IntPointer(histSize);
+        final PointerPointer<FloatPointer> ptrPtrHistRange = new PointerPointer<>(histRange, histRange, histRange);
+        calcHist(image, 1, intPtrChannels, mask, hist, 3, intPtrHistSize, ptrPtrHistRange, true, false);
+        return hist;
+    }
 
 	/*
 	 * Return histogram for a Mat objet as a array of Float
@@ -113,6 +127,9 @@ public class LoadAndDisplay {
 		canvasF.showImage(canvas);
 	}
 
+	/*
+	 * Returns highest peak in an histogram
+	 */
 	private static double max(Float[] hist) {
 		Float max=(float) 0;
 		for(Float f : hist) {
@@ -120,8 +137,6 @@ public class LoadAndDisplay {
 		}
 		return max;
 	}
-
-
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -157,15 +172,10 @@ public class LoadAndDisplay {
 
 		showHistogram(toPrint, "ThisIsHistogram");
 		
-		//Need MAt conversion
-		//Mat backToMat = new Mat();
-		//UByteIndexer idx = (UByteIndexer) backToMat.createIndexer();
 		
-		//Comvertir le format en CV_32F ???
-		
-		double d = compareHist(image,image,1);
+		double d = compareHist(myCalcHist(image),myCalcHist(image),1);
 		System.out.println(String.valueOf(d));
-		
+				
 	    //Mat hist_1 = new Mat();
 	   // MatOfFloat ranges = new MatOfFloat(0f, 256f);
 	    //MatOfInt histSize = new MatOfInt(25);
@@ -176,4 +186,5 @@ public class LoadAndDisplay {
 
 	}
 
+	
 }

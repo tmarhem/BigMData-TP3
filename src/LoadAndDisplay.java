@@ -274,15 +274,15 @@ public class LoadAndDisplay {
 		Mat groupFaces = imread("resources/Group-Faces.jpg");
 
 		////////////////////////////// TEST HISTOGRAM COMP
-		// histogramComparisonRunTest(imagesHash, image);
+		 histogramComparisonRunTest(imagesHash);
 		///////////////////////////////////////
 
 		//////////////////////////////// KEY POINTS DETECTION
-		// keyPointsRunTest(image, image2, image3);
+		 keyPointsRunTest();
 		//////////////////////////////////////////////////////
 
 		/////////////////////////////// FACE DETECTION
-		// faceDetectionRunTest(groupFaces);
+		 faceDetectionRunTest();
 		/////////////////////////////////////////////////
 
 		// Others tests
@@ -305,24 +305,26 @@ public class LoadAndDisplay {
 
 	}
 
-	private static void faceDetectionRunTest(Mat groupFaces) throws Exception {
+	@SuppressWarnings("unused")
+	private static void faceDetectionRunTest() throws Exception {
+		
+		Mat groupFaces = imread("resources/Group-Faces.jpg");
+
 		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
 		CascadeClassifier eye_cascade = new CascadeClassifier("resources/frontalEyes35x16.xml");
 		CascadeClassifier smile_cascade = new CascadeClassifier("resources/haarcascade_smile.xml");
 
 
 		RectVector faces = new RectVector();
-		RectVector eyes = new RectVector();
-		RectVector smiles = new RectVector();
+		//RectVector eyes = new RectVector();
+		//RectVector smiles = new RectVector();
 
-		Mat videoMat = new Mat();
 		face_cascade.detectMultiScale(groupFaces, faces);
 		//eye_cascade.detectMultiScale(groupFaces, eyes);
 		//smile_cascade.detectMultiScale(groupFaces, smiles);
 		
 		for (int i = 0; i < faces.size(); i++) {
 			Rect face_i = faces.get(i);
-			Mat face = new Mat(groupFaces, face_i);
 			rectangle(groupFaces, face_i, new Scalar(0, 255, 0, 1));
 		}
 		
@@ -345,7 +347,13 @@ public class LoadAndDisplay {
 		smile_cascade.close();
 	}
 
-	private static void keyPointsRunTest(Mat image, Mat image2, Mat image3) throws Exception {
+	@SuppressWarnings("unused")
+	private static void keyPointsRunTest() throws Exception {
+		
+		Mat image = imread("data/parliament3.bmp", 1);
+		Mat image2 = imread("data/parliament1.bmp", 1);
+		Mat image3 = imread("data/parliament2.jpg", 1);
+
 		KeyPointVector keyPoints = new KeyPointVector();
 		KeyPointVector keyPoints2 = new KeyPointVector();
 		KeyPointVector keyPoints3 = new KeyPointVector();
@@ -401,7 +409,10 @@ public class LoadAndDisplay {
 	}
 
 	@SuppressWarnings("unused")
-	private static void histogramComparisonRunTest(HashMap<String, Mat> imagesHash, Mat image) {
+	private static void histogramComparisonRunTest(HashMap<String, Mat> imagesHash) {
+		
+		Mat image = imread("data/parliament3.bmp", 1);
+
 		Float[] toPrint = getMyHistogram(image);
 		showHistogram(toPrint, "Group");
 

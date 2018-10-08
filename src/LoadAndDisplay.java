@@ -1,22 +1,12 @@
-import static org.bytedeco.javacpp.opencv_highgui.WINDOW_AUTOSIZE;
-import static org.bytedeco.javacpp.opencv_highgui.imshow;
-import static org.bytedeco.javacpp.opencv_highgui.namedWindow;
-import static org.bytedeco.javacpp.opencv_highgui.waitKey;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import org.bytedeco.javacpp.opencv_core.CvHistogram;
 import org.bytedeco.javacpp.opencv_core.DMatch;
 import org.bytedeco.javacpp.opencv_core.DMatchVector;
 import org.bytedeco.javacpp.opencv_core.KeyPointVector;
-import org.bytedeco.javacv.JavaCV;
 
 import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
 import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
-import static org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
 import static org.bytedeco.javacpp.opencv_features2d.drawMatches;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
@@ -44,7 +34,6 @@ import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
 import org.bytedeco.javacpp.opencv_shape;
 import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
-import org.bytedeco.javacpp.presets.opencv_features2d;
 
 import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
 import org.bytedeco.javacv.CanvasFrame;

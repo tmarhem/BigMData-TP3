@@ -9,13 +9,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.bytedeco.javacpp.opencv_core.CvHistogram;
+import org.bytedeco.javacpp.opencv_core.DMatch;
+import org.bytedeco.javacpp.opencv_core.DMatchVector;
 import org.bytedeco.javacpp.opencv_core.KeyPointVector;
 import org.bytedeco.javacv.JavaCV;
 
 import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
 import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
+import static org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
+import static org.bytedeco.javacpp.opencv_features2d.drawMatches;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -31,16 +36,39 @@ import org.bytedeco.javacpp.opencv_calib3d;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.Point;
 import org.bytedeco.javacpp.opencv_core.Scalar;
+import org.bytedeco.javacpp.opencv_features2d.BFMatcher;
 import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
 import org.bytedeco.javacpp.opencv_shape;
 import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
+import org.bytedeco.javacpp.presets.opencv_features2d;
+
 import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 
 public class LoadAndDisplay {
+
+	static DMatchVector selectBest(DMatchVector matches, int numberToSelect) {
+		DMatch[] sorted = toArray(matches);
+		Arrays.sort(sorted, (a, b) -> {
+			return a.lessThan(b) ? -1 : 1;
+		});
+		DMatch[] best = Arrays.copyOf(sorted, numberToSelect);
+		return new DMatchVector(best);
+	}
+
+	static DMatch[] toArray(DMatchVector matches) {
+		assert matches.size() <= Integer.MAX_VALUE;
+		int n = (int) matches.size();
+//	Convert	keyPoints	to	Scala	sequence
+		DMatch[] result = new DMatch[n];
+		for (int i = 0; i < n; i++) {
+			result[i] = new DMatch(matches.get(i));
+		}
+		return result;
+	}
 
 	public static String getClosestHist(String reference, String[] imagesNamesArray) {
 		Mat matReference = imread("data/" + reference + ".jpg", 1);
@@ -221,7 +249,7 @@ public class LoadAndDisplay {
 
 	}
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws Exception {
 
 		String[] namesArray = { "baboon1", "baboon2", "baboon3", "baboon4", "boldt", "boldt_salt" };
 		LinkedList<String> imagesNames = new LinkedList<String>();
@@ -236,38 +264,21 @@ public class LoadAndDisplay {
 			}
 		}
 
-		Mat image = imread("data/parliament1.bmp", 1);
+		Mat image = imread("data/parliament3.bmp", 1);
+		Mat image2 = imread("data/parliament1.bmp", 1);
+		Mat image3 = imread("data/parliament2.jpg", 1);
+
 		if (image == null || image.empty()) {
 			System.out.println("fail");
 			return;
 		}
 
-		// TEST GETMYHISTOGRAM
-
-		// histogramComparisonRunTest(imagesHash, image);
-
+		////////////////////////////// TEST GETMYHISTOGRAM
+		histogramComparisonRunTest(imagesHash, image);
+		///////////////////////////////////////
+		
 		//////////////////////////////// KEY POINTS DETECTION
-		KeyPointVector keyPoints = new KeyPointVector();
-		int nFeatures = 150;
-		int nOctaveLayers = 3;
-		double contrastThreshold = 0.01;
-		int edgeThreshold = 100;
-		double sigma = 1.6;
-		Loader.load(opencv_calib3d.class);
-		Loader.load(opencv_shape.class);
-
-		SIFT sift;
-
-		sift = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
-		sift.detect(image, keyPoints);
-
-		Mat descriptor = new Mat();
-		sift.compute(image, keyPoints, descriptor);
-		Mat featureImage = new Mat();
-		drawKeypoints(image, keyPoints, featureImage, new Scalar(255, 255, 255, 0),
-				DrawMatchesFlags.DRAW_RICH_KEYPOINTS);
-		Show(featureImage,"ftImage");
-
+		keyPointsRunTest(image, image2, image3);
 		//////////////////////////////////////////////////////
 
 		/////////////////////////// FLIP IMAGE
@@ -287,6 +298,61 @@ public class LoadAndDisplay {
 		//
 		////////////////////////////////////////////////
 
+	}
+
+	private static void keyPointsRunTest(Mat image, Mat image2, Mat image3) throws Exception {
+		KeyPointVector keyPoints = new KeyPointVector();
+		KeyPointVector keyPoints2 = new KeyPointVector();
+		KeyPointVector keyPoints3 = new KeyPointVector();
+
+		// params for sift
+		int nFeatures = 150;
+		int nOctaveLayers = 3;
+		double contrastThreshold = 0.01;
+		int edgeThreshold = 100;
+		double sigma = 1.6;
+		Loader.load(opencv_calib3d.class);
+		Loader.load(opencv_shape.class);
+
+		SIFT sift, sift2, sift3;
+
+		sift = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
+		sift2 = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
+		sift3 = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
+
+		sift.detect(image, keyPoints);
+		sift2.detect(image2, keyPoints2);
+		sift3.detect(image3, keyPoints3);
+
+		Mat descriptor = new Mat();
+		Mat descriptor2 = new Mat();
+		Mat descriptor3 = new Mat();
+
+		sift.compute(image, keyPoints, descriptor);
+		sift2.compute(image2, keyPoints2, descriptor2);
+		sift3.compute(image3, keyPoints3, descriptor3);
+
+		// state : 3 images computed and stored
+		BFMatcher matcher = new BFMatcher(5, false);
+		DMatchVector matches = new DMatchVector();
+		matcher.match(descriptor, descriptor2, matches);
+		System.out.println("Matching 1-2 : " + matches.size());
+		//selectBest(matches, 10);
+
+		Mat imageMatches = new Mat();
+		byte[] mask = null;
+	
+		drawMatches(image, keyPoints, image2, keyPoints2, selectBest(matches,20), imageMatches,
+				new Scalar(0, 0, 255, 0), new Scalar(255, 0, 0, 0), mask, DrawMatchesFlags.DEFAULT);
+		Show(imageMatches, "imageMatches");
+
+		matcher.close();
+		
+		// Drawing output of descriptor
+		Mat featureImage = new Mat();
+		drawKeypoints(image, keyPoints, featureImage, new Scalar(255, 255, 255, 0),
+				DrawMatchesFlags.DRAW_RICH_KEYPOINTS);
+		Show(featureImage, "ftImage");
 	}
 
 	@SuppressWarnings("unused")

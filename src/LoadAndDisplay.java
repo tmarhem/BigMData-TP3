@@ -10,10 +10,14 @@ import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
 import static org.bytedeco.javacpp.opencv_features2d.drawMatches;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.nio.IntBuffer;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import javax.swing.JFrame;
@@ -24,10 +28,13 @@ import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.opencv_calib3d;
 import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core.MatVector;
 import org.bytedeco.javacpp.opencv_core.Point;
 import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.RectVector;
 import org.bytedeco.javacpp.opencv_core.Scalar;
+import org.bytedeco.javacpp.opencv_face.FaceRecognizer;
 import org.bytedeco.javacpp.opencv_features2d.BFMatcher;
 import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
 import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
@@ -256,25 +263,56 @@ public class LoadAndDisplay {
 			}
 		}
 
-		Mat image = imread("data/parliament3.bmp", 1);
-		Mat image2 = imread("data/parliament1.bmp", 1);
-		Mat image3 = imread("data/parliament2.jpg", 1);
-
-		Mat groupFaces = imread("resources/Group-Faces.jpg");
-
 		////////////////////////////// TEST HISTOGRAM COMP
-		 histogramComparisonRunTest(imagesHash);
+		histogramComparisonRunTest(imagesHash);
 		///////////////////////////////////////
 
 		//////////////////////////////// KEY POINTS DETECTION
-		 keyPointsRunTest();
+		keyPointsRunTest();
 		//////////////////////////////////////////////////////
 
 		/////////////////////////////// FACE DETECTION
-		 faceDetectionRunTest();
+		faceDetectionRunTest();
 		/////////////////////////////////////////////////
 
-		// Others tests
+		//////////////////////////////// FACE RECOGNITION
+		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
+		String trainingDir = "resources/Groupe-gates.png";
+//		FaceRecognizer faceRecognizer = createLBPHFaceRecognizer();
+//		FaceRecognizer	faceRecognizer	=	createFisherFaceRecognizer();
+//	 	FaceRecognizer	faceRecognizer	= createEigenFaceRecognizer();
+
+		File root = new File(trainingDir);
+		FilenameFilter imgFilter = new FilenameFilter() {
+			public boolean accept(File dir, String name) {
+				name = name.toLowerCase();
+				return name.endsWith(".jpg") || name.endsWith(".pgm") || name.endsWith(".png");
+			}
+		};
+		File[] imageFiles = root.listFiles(imgFilter);
+		MatVector images = new MatVector(imageFiles.length);
+
+		Mat labels = new Mat(imageFiles.length, 1);
+		IntBuffer labelsBuf = labels.createBuffer();
+		int counter = 0;
+		for (File im : imageFiles) {
+
+			Mat img = imread(im.getAbsolutePath(), CV_LOAD_IMAGE_GRAYSCALE);
+			// System.out.println(Integer.parseInt(im.getName().split("-.")[0]));
+			int label = Integer.parseInt(im.getName().split("-.")[0]);
+			images.put(counter, img);
+			labelsBuf.put(counter, label);
+			counter++;
+//				System.out.println("path:"	+	counter);
+		}
+	
+
+		images.close();
+		labels.close();
+		////////////////////////////////////////////////
+
+		//////////////////////////////////// OTHERS////////////////////////
+		//////////////////////////////////////////////////////////////////
 		/////////////////////////// FLIP IMAGE
 		// Mat flippedImage = imread("data/tower.jpg", 1);
 		// flip(image, flippedImage, -1);
@@ -296,41 +334,40 @@ public class LoadAndDisplay {
 
 	@SuppressWarnings("unused")
 	private static void faceDetectionRunTest() throws Exception {
-		
+
 		Mat groupFaces = imread("resources/Group-Faces.jpg");
 
 		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
 		CascadeClassifier eye_cascade = new CascadeClassifier("resources/frontalEyes35x16.xml");
 		CascadeClassifier smile_cascade = new CascadeClassifier("resources/haarcascade_smile.xml");
 
-
 		RectVector faces = new RectVector();
-		//RectVector eyes = new RectVector();
-		//RectVector smiles = new RectVector();
+		// RectVector eyes = new RectVector();
+		// RectVector smiles = new RectVector();
 
 		face_cascade.detectMultiScale(groupFaces, faces);
-		//eye_cascade.detectMultiScale(groupFaces, eyes);
-		//smile_cascade.detectMultiScale(groupFaces, smiles);
-		
+		// eye_cascade.detectMultiScale(groupFaces, eyes);
+		// smile_cascade.detectMultiScale(groupFaces, smiles);
+
 		for (int i = 0; i < faces.size(); i++) {
 			Rect face_i = faces.get(i);
 			rectangle(groupFaces, face_i, new Scalar(0, 255, 0, 1));
 		}
-		
+
 //		for (int i = 0; i < eyes.size(); i++) {
 //			Rect eye_i = eyes.get(i);
 //			Mat eye = new Mat(groupFaces, eye_i);
 //			rectangle(groupFaces, eye_i, new Scalar(255, 0, 0, 1));
 //		}
-		
+
 //		for (int i = 0; i < smiles.size(); i++) {
 //			Rect smile_i = smiles.get(i);
 //			Mat smile = new Mat(groupFaces, smile_i);
 //			rectangle(groupFaces, smile_i, new Scalar(0, 0, 255, 1));
 //		}
-		
+
 		Show(groupFaces, "face_détction");
-		
+
 		face_cascade.close();
 		eye_cascade.close();
 		smile_cascade.close();
@@ -338,7 +375,7 @@ public class LoadAndDisplay {
 
 	@SuppressWarnings("unused")
 	private static void keyPointsRunTest() throws Exception {
-		
+
 		Mat image = imread("data/parliament3.bmp", 1);
 		Mat image2 = imread("data/parliament1.bmp", 1);
 		Mat image3 = imread("data/parliament2.jpg", 1);
@@ -399,7 +436,7 @@ public class LoadAndDisplay {
 
 	@SuppressWarnings("unused")
 	private static void histogramComparisonRunTest(HashMap<String, Mat> imagesHash) {
-		
+
 		Mat image = imread("data/parliament3.bmp", 1);
 
 		Float[] toPrint = getMyHistogram(image);

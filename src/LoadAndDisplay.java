@@ -35,9 +35,12 @@ import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.opencv_calib3d;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.Point;
+import org.bytedeco.javacpp.opencv_core.Rect;
+import org.bytedeco.javacpp.opencv_core.RectVector;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_features2d.BFMatcher;
 import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
+import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
 import org.bytedeco.javacpp.opencv_shape;
 import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
@@ -268,19 +271,21 @@ public class LoadAndDisplay {
 		Mat image2 = imread("data/parliament1.bmp", 1);
 		Mat image3 = imread("data/parliament2.jpg", 1);
 
-		if (image == null || image.empty()) {
-			System.out.println("fail");
-			return;
-		}
+		Mat groupFaces = imread("resources/Group-Faces.jpg");
 
-		////////////////////////////// TEST GETMYHISTOGRAM
-		histogramComparisonRunTest(imagesHash, image);
+		////////////////////////////// TEST HISTOGRAM COMP
+		// histogramComparisonRunTest(imagesHash, image);
 		///////////////////////////////////////
-		
+
 		//////////////////////////////// KEY POINTS DETECTION
-		keyPointsRunTest(image, image2, image3);
+		// keyPointsRunTest(image, image2, image3);
 		//////////////////////////////////////////////////////
 
+		/////////////////////////////// FACE DETECTION
+		// faceDetectionRunTest(groupFaces);
+		/////////////////////////////////////////////////
+
+		// Others tests
 		/////////////////////////// FLIP IMAGE
 		// Mat flippedImage = imread("data/tower.jpg", 1);
 		// flip(image, flippedImage, -1);
@@ -298,6 +303,46 @@ public class LoadAndDisplay {
 		//
 		////////////////////////////////////////////////
 
+	}
+
+	private static void faceDetectionRunTest(Mat groupFaces) throws Exception {
+		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
+		CascadeClassifier eye_cascade = new CascadeClassifier("resources/frontalEyes35x16.xml");
+		CascadeClassifier smile_cascade = new CascadeClassifier("resources/haarcascade_smile.xml");
+
+
+		RectVector faces = new RectVector();
+		RectVector eyes = new RectVector();
+		RectVector smiles = new RectVector();
+
+		Mat videoMat = new Mat();
+		face_cascade.detectMultiScale(groupFaces, faces);
+		//eye_cascade.detectMultiScale(groupFaces, eyes);
+		//smile_cascade.detectMultiScale(groupFaces, smiles);
+		
+		for (int i = 0; i < faces.size(); i++) {
+			Rect face_i = faces.get(i);
+			Mat face = new Mat(groupFaces, face_i);
+			rectangle(groupFaces, face_i, new Scalar(0, 255, 0, 1));
+		}
+		
+//		for (int i = 0; i < eyes.size(); i++) {
+//			Rect eye_i = eyes.get(i);
+//			Mat eye = new Mat(groupFaces, eye_i);
+//			rectangle(groupFaces, eye_i, new Scalar(255, 0, 0, 1));
+//		}
+		
+//		for (int i = 0; i < smiles.size(); i++) {
+//			Rect smile_i = smiles.get(i);
+//			Mat smile = new Mat(groupFaces, smile_i);
+//			rectangle(groupFaces, smile_i, new Scalar(0, 0, 255, 1));
+//		}
+		
+		Show(groupFaces, "face_détction");
+		
+		face_cascade.close();
+		eye_cascade.close();
+		smile_cascade.close();
 	}
 
 	private static void keyPointsRunTest(Mat image, Mat image2, Mat image3) throws Exception {
@@ -337,17 +382,17 @@ public class LoadAndDisplay {
 		DMatchVector matches = new DMatchVector();
 		matcher.match(descriptor, descriptor2, matches);
 		System.out.println("Matching 1-2 : " + matches.size());
-		//selectBest(matches, 10);
+		// selectBest(matches, 10);
 
 		Mat imageMatches = new Mat();
 		byte[] mask = null;
-	
-		drawMatches(image, keyPoints, image2, keyPoints2, selectBest(matches,20), imageMatches,
+
+		drawMatches(image, keyPoints, image2, keyPoints2, selectBest(matches, 20), imageMatches,
 				new Scalar(0, 0, 255, 0), new Scalar(255, 0, 0, 0), mask, DrawMatchesFlags.DEFAULT);
 		Show(imageMatches, "imageMatches");
 
 		matcher.close();
-		
+
 		// Drawing output of descriptor
 		Mat featureImage = new Mat();
 		drawKeypoints(image, keyPoints, featureImage, new Scalar(255, 255, 255, 0),

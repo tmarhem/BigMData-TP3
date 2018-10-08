@@ -9,9 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.bytedeco.javacpp.opencv_core.CvHistogram;
+import org.bytedeco.javacpp.opencv_core.KeyPointVector;
 import org.bytedeco.javacv.JavaCV;
 
 import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
+import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import java.awt.Color;
@@ -23,15 +25,20 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.IntPointer;
+import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.javacpp.opencv_calib3d;
 import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.Point;
+import org.bytedeco.javacpp.opencv_core.Scalar;
+import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
+import org.bytedeco.javacpp.opencv_shape;
+import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 public class LoadAndDisplay {
 
@@ -53,7 +60,7 @@ public class LoadAndDisplay {
 		}
 		return bestMatch;
 	}
-	
+
 	/*
 	 * Template matching part
 	 */
@@ -77,11 +84,12 @@ public class LoadAndDisplay {
 		double[] maxVal = new double[1];
 		Point minPt = new Point();
 		Point maxPt = new Point();
-		//minMaxLoc(result, minVal, maxVal, minPt, maxPt, null);
-		//System.out.println("minPt	=	(" + minPt.x() + ",	" + maxPt.y() + ")");
+		// minMaxLoc(result, minVal, maxVal, minPt, maxPt, null);
+		// System.out.println("minPt = (" + minPt.x() + ", " + maxPt.y() + ")");
 		// draw rectangle at most similar location
 		// at minPt in this case
-		//rectangle(roi, new Rect(minPt.x(), minPt.y(), target.cols(), target.rows()), new Scalar(255, 255, 255, 0));
+		// rectangle(roi, new Rect(minPt.x(), minPt.y(), target.cols(), target.rows()),
+		// new Scalar(255, 255, 255, 0));
 		Show(roi, "Best	match");
 	}
 
@@ -228,21 +236,61 @@ public class LoadAndDisplay {
 			}
 		}
 
-		Mat image = imread("data/group.jpg", 1);
+		Mat image = imread("data/parliament1.bmp", 1);
 		if (image == null || image.empty()) {
 			System.out.println("fail");
 			return;
 		}
 
-		// taille image
-//		System.out.println("image" + image.cols() + "	x	" + image.rows());
-//		Show(image, "img");
-//		Show(imagesHash.get("boldt"), "boldt");
-//		Show(imagesHash.get("baboon1"), "baboon");
-//
-
 		// TEST GETMYHISTOGRAM
 
+		// histogramComparisonRunTest(imagesHash, image);
+
+		//////////////////////////////// KEY POINTS DETECTION
+		KeyPointVector keyPoints = new KeyPointVector();
+		int nFeatures = 150;
+		int nOctaveLayers = 3;
+		double contrastThreshold = 0.01;
+		int edgeThreshold = 100;
+		double sigma = 1.6;
+		Loader.load(opencv_calib3d.class);
+		Loader.load(opencv_shape.class);
+
+		SIFT sift;
+
+		sift = SIFT.create(nFeatures, nOctaveLayers, contrastThreshold, edgeThreshold, sigma);
+		sift.detect(image, keyPoints);
+
+		Mat descriptor = new Mat();
+		sift.compute(image, keyPoints, descriptor);
+		Mat featureImage = new Mat();
+		drawKeypoints(image, keyPoints, featureImage, new Scalar(255, 255, 255, 0),
+				DrawMatchesFlags.DRAW_RICH_KEYPOINTS);
+		Show(featureImage,"ftImage");
+
+		//////////////////////////////////////////////////////
+
+		/////////////////////////// FLIP IMAGE
+		// Mat flippedImage = imread("data/tower.jpg", 1);
+		// flip(image, flippedImage, -1);
+		////////////////////////////////////////////////
+
+		/////////////////////////// CIRCLE IMAGE
+		//
+		// Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
+		// Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
+		// 8-connected line 0); // shift
+		//
+		// opencv_imgproc.putText(imageCircle, // "Lake and Tower", // new Point(460,
+		// 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, //
+		/////////////////////////// 8,false); // Show(imageCircle, "mark");
+		//
+		////////////////////////////////////////////////
+
+	}
+
+	@SuppressWarnings("unused")
+	private static void histogramComparisonRunTest(HashMap<String, Mat> imagesHash, Mat image) {
 		Float[] toPrint = getMyHistogram(image);
 		showHistogram(toPrint, "Group");
 
@@ -264,26 +312,6 @@ public class LoadAndDisplay {
 		String leplusproche = compareListHist(image_compar, imagesHash);
 
 		System.out.println(String.valueOf(leplusproche));
-
-		/////////////////////////// FLIP IMAGE
-		// Mat flippedImage = imread("data/tower.jpg", 1);
-		// flip(image, flippedImage, -1);
-		////////////////////////////////////////////////
-
-		/////////////////////////// CIRCLE IMAGE
-		//
-		// Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
-		// Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
-		// 8-connected line 0); // shift
-		//
-		// opencv_imgproc.putText(imageCircle, // "Lake and Tower", // new Point(460,
-		// 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, //
-		/////////////////////////// 8,false); // Show(imageCircle, "mark");
-		//
-		////////////////////////////////////////////////
-
 	}
-
-	
 
 }

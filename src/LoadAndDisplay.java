@@ -276,6 +276,31 @@ public class LoadAndDisplay {
 		/////////////////////////////////////////////////
 
 		//////////////////////////////// FACE RECOGNITION
+		faceRecognitionRunTest();
+		////////////////////////////////////////////////
+
+		//////////////////////////////////// OTHERS////////////////////////
+		//////////////////////////////////////////////////////////////////
+		/////////////////////////// FLIP IMAGE
+		// Mat flippedImage = imread("data/tower.jpg", 1);
+		// flip(image, flippedImage, -1);
+		////////////////////////////////////////////////
+
+		/////////////////////////// CIRCLE IMAGE
+		//
+		// Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
+		// Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
+		// 8-connected line 0); // shift
+		//
+		// opencv_imgproc.putText(imageCircle, // "Lake and Tower", // new Point(460,
+		// 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, //
+		/////////////////////////// 8,false); // Show(imageCircle, "mark");
+		//
+		////////////////////////////////////////////////
+
+	}
+
+	private static void faceRecognitionRunTest() throws Exception {
 		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
 		String trainingDir = "resources/Groupe-gates.png";
 //		FaceRecognizer faceRecognizer = createLBPHFaceRecognizer();
@@ -309,27 +334,6 @@ public class LoadAndDisplay {
 
 		images.close();
 		labels.close();
-		////////////////////////////////////////////////
-
-		//////////////////////////////////// OTHERS////////////////////////
-		//////////////////////////////////////////////////////////////////
-		/////////////////////////// FLIP IMAGE
-		// Mat flippedImage = imread("data/tower.jpg", 1);
-		// flip(image, flippedImage, -1);
-		////////////////////////////////////////////////
-
-		/////////////////////////// CIRCLE IMAGE
-		//
-		// Mat imageCircle = imread("data/tower.jpg", 1); circle(imageCircle, // new
-		// Point(420, 150), // 65, // radius new Scalar(0, 200, 0, 0), // 2, // 8, //
-		// 8-connected line 0); // shift
-		//
-		// opencv_imgproc.putText(imageCircle, // "Lake and Tower", // new Point(460,
-		// 200), // FONT_HERSHEY_PLAIN, // 2.0, // new Scalar(0, 255, 0, 3), // 1, //
-		/////////////////////////// 8,false); // Show(imageCircle, "mark");
-		//
-		////////////////////////////////////////////////
-
 	}
 
 	@SuppressWarnings("unused")

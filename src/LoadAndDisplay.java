@@ -32,6 +32,7 @@ import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_core.MatVector;
 import org.bytedeco.javacpp.opencv_core.Point;
 import org.bytedeco.javacpp.opencv_core.Rect;
+import static org.bytedeco.javacpp.opencv_core.LUT;
 import org.bytedeco.javacpp.opencv_core.RectVector;
 import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_face.FaceRecognizer;
@@ -46,6 +47,9 @@ import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
+import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
+
+
 
 public class LoadAndDisplay {
 
@@ -272,13 +276,18 @@ public class LoadAndDisplay {
 		//////////////////////////////////////////////////////
 
 		/////////////////////////////// FACE DETECTION
-		faceDetectionRunTest();
+		//faceDetectionRunTest();
 		/////////////////////////////////////////////////
 
 		//////////////////////////////// FACE RECOGNITION
-		faceRecognitionRunTest();
+		//faceRecognitionRunTest();
 		////////////////////////////////////////////////
-
+		
+		/////////////////////////////// LUT
+		Mat lut1 = new Mat (1, 256, CV_8UC3);
+		myLut(imagesHash.get("baboon1"),lut1);
+		/////////////////////////////////////////////////
+		
 		//////////////////////////////////// OTHERS////////////////////////
 		//////////////////////////////////////////////////////////////////
 		/////////////////////////// FLIP IMAGE
@@ -297,8 +306,42 @@ public class LoadAndDisplay {
 		/////////////////////////// 8,false); // Show(imageCircle, "mark");
 		//
 		////////////////////////////////////////////////
+		}
+	
+	@SuppressWarnings("unused")
+	private static void myLut(Mat image, Mat lut) {
 
-	}
+	/*
+		UByteIndexer idx = (UByteIndexer) image.createIndexer();
+		TreeMap<Integer, Integer> tempResults = new TreeMap<Integer, Integer>();
+
+		for (int i = 0; i <= 255; i++) {
+			tempResults.put(i, 0);
+		}
+		
+		Float[] results = new Float[256];
+		LUT(image,results, dest);
+
+		for (int i = 0; i < image.rows(); i++) {
+			for (int j = 0; j < image.cols(); j++) {
+				int pix = idx.get(i, j);
+				if (!tempResults.containsKey(pix)) {
+					tempResults.put(pix, 1);
+				} else {
+					tempResults.replace(pix, (tempResults.get(pix) + 1));
+				}
+			}
+		}
+		*/
+		Mat dest = new Mat ();
+		UByteIndexer idx = (UByteIndexer) lut.createIndexer();
+		 for (int i = 0; i<256; i++){	
+			 UByteIndexer a = idx.put(i, 255-i);
+				}
+		 		
+		 LUT(image, lut,dest);
+		 Show(dest,"LUT");
+		 }
 
 	private static void faceRecognitionRunTest() throws Exception {
 		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");

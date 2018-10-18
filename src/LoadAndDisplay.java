@@ -1,10 +1,13 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.bytedeco.javacpp.opencv_core.DMatch;
 import org.bytedeco.javacpp.opencv_core.DMatchVector;
 import org.bytedeco.javacpp.opencv_core.KeyPointVector;
-
 import static org.bytedeco.javacpp.opencv_imgproc.compareHist;
 import static org.bytedeco.javacpp.opencv_features2d.drawKeypoints;
 import static org.bytedeco.javacpp.opencv_features2d.drawMatches;
@@ -27,6 +30,7 @@ import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.opencv_calib3d;
+import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_core.MatVector;
@@ -48,7 +52,10 @@ import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
-
+import static org.bytedeco.javacpp.opencv_core.CV_8U;
+import static org.bytedeco.javacpp.opencv_core.kmeans;
+import static org.bytedeco.javacpp.opencv_core.CV_32F;
+import static org.bytedeco.javacpp.opencv_core.KMEANS_PP_CENTERS;
 
 
 public class LoadAndDisplay {
@@ -252,6 +259,34 @@ public class LoadAndDisplay {
 
 	}
 
+	private static List<Mat> showClusters (Mat cutout, Mat labels, Mat centers) {
+		//centers.convertTo(centers, opencv_core.CV_8UC3, 255.0);
+		centers.reshape(3);
+		
+		ArrayList<Mat> clusters = new ArrayList<Mat>();
+		for(int i = 0; i < centers.rows(); i++) {
+			clusters.add(Mat.zeros(cutout.size(), cutout.type()));
+		}
+		
+		Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
+		for(int i = 0; i < centers.rows(); i++) counts.put(i, 0);
+		
+		int rows = 0;
+		for(int y = 0; y < cutout.rows(); y++) {
+			for(int x = 0; x < cutout.cols(); x++) {
+				int label = (int)labels.get(rows, 0)[0];
+				int r = (int)centers.get(label, 2)[0];
+				int g = (int)centers.get(label, 1)[0];
+				int b = (int)centers.get(label, 0)[0];
+				counts.put(label, counts.get(label) + 1);
+				clusters.get(label).put(y, x, b, g, r);
+				rows++;
+			}
+		}
+		System.out.println(counts);
+		return clusters;
+}
+	
 	public static void main(String[] args) throws Exception {
 
 		String[] namesArray = { "baboon1", "baboon2", "baboon3", "baboon4", "boldt", "boldt_salt" };
@@ -276,7 +311,7 @@ public class LoadAndDisplay {
 		//////////////////////////////////////////////////////
 
 		/////////////////////////////// FACE DETECTION
-		//faceDetectionRunTest();
+		faceDetectionRunTest();
 		/////////////////////////////////////////////////
 
 		//////////////////////////////// FACE RECOGNITION
@@ -287,6 +322,37 @@ public class LoadAndDisplay {
 		Mat lut1 = new Mat (1, 256, CV_8UC3);
 		myLut(imagesHash.get("baboon1"),lut1);
 		/////////////////////////////////////////////////
+		
+		/////////////////////////////// Quantification d'image par clustering
+		Mat image = imagesHash.get("baboon1");
+		Mat reshaped_img = image.reshape(1,image.cols()*image.rows());
+		Mat reshaped_img32f = new Mat();
+		reshaped_img.convertTo(reshaped_img32f, CV_32F);
+        Mat labels = new Mat();
+        Mat centers = new Mat();
+        int nclusters = 2;
+        opencv_core.TermCriteria tc = new opencv_core.TermCriteria(opencv_core.TermCriteria.EPS + opencv_core.TermCriteria.COUNT, 10, 1.0);
+        kmeans(reshaped_img32f,nclusters, labels, tc, 1, KMEANS_PP_CENTERS, centers);
+		/////////////////////////////////////////////////
+        
+        /////////////////////////////// Threshold & erosion & morphology
+        Mat	thresh = new Mat(image.size());	
+        threshold(image,thresh,120,255,THRESH_BINARY_INV);
+        Show(thresh, "thresh");
+        
+        Mat	element5 =	new	Mat(5,	5,	CV_8U,	new	Scalar(1d));
+        Mat	eroded = new	Mat();	erode(thresh,	eroded,	element5);	
+        Mat	opened = new	Mat();	morphologyEx(thresh,	opened,	MORPH_OPEN,	element5);
+        Show(eroded,"eroded");
+        Show(opened,"opened");
+        /////////////////////////////////////////////////
+        
+		/////////////////////////////// Canaux de couleur
+        MatVector	rgbSplit	=	new	MatVector();	
+        split(image,	rgbSplit);	
+        Show(rgbSplit.get(0),	"original");//	afficher	le	plan	"rouge"
+		/////////////////////////////////////////////////
+		
 		
 		//////////////////////////////////// OTHERS////////////////////////
 		//////////////////////////////////////////////////////////////////

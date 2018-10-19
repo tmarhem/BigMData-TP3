@@ -42,6 +42,7 @@ import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.bytedeco.javacpp.opencv_face.FaceRecognizer;
 import org.bytedeco.javacpp.opencv_features2d.BFMatcher;
 import org.bytedeco.javacpp.opencv_features2d.DrawMatchesFlags;
+import org.bytedeco.javacpp.opencv_imgproc;
 import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
 import org.bytedeco.javacpp.opencv_shape;
 import org.bytedeco.javacpp.opencv_xfeatures2d.SIFT;
@@ -56,6 +57,8 @@ import static org.bytedeco.javacpp.opencv_core.CV_8U;
 import static org.bytedeco.javacpp.opencv_core.kmeans;
 import static org.bytedeco.javacpp.opencv_core.CV_32F;
 import static org.bytedeco.javacpp.opencv_core.KMEANS_PP_CENTERS;
+import static org.bytedeco.javacpp.opencv_core.split;;
+
 
 
 public class LoadAndDisplay {
@@ -336,23 +339,12 @@ public class LoadAndDisplay {
 		/////////////////////////////////////////////////
         
         /////////////////////////////// Threshold & erosion & morphology
-        Mat	thresh = new Mat(image.size());	
-        threshold(image,thresh,120,255,THRESH_BINARY_INV);
-        Show(thresh, "thresh");
-        
-        Mat	element5 =	new	Mat(5,	5,	CV_8U,	new	Scalar(1d));
-        Mat	eroded = new	Mat();	erode(thresh,	eroded,	element5);	
-        Mat	opened = new	Mat();	morphologyEx(thresh,	opened,	MORPH_OPEN,	element5);
-        Show(eroded,"eroded");
-        Show(opened,"opened");
+        threshold_erosion(image);
         /////////////////////////////////////////////////
         
 		/////////////////////////////// Canaux de couleur
-        MatVector	rgbSplit	=	new	MatVector();	
-        split(image,	rgbSplit);	
-        Show(rgbSplit.get(0),	"original");//	afficher	le	plan	"rouge"
+        split_and_gray(image);
 		/////////////////////////////////////////////////
-		
 		
 		//////////////////////////////////// OTHERS////////////////////////
 		//////////////////////////////////////////////////////////////////
@@ -373,32 +365,31 @@ public class LoadAndDisplay {
 		//
 		////////////////////////////////////////////////
 		}
+
+	private static void split_and_gray(Mat image) {
+		MatVector	rgbSplit	=	new	MatVector();	
+        split(image,	rgbSplit);	
+        Show(rgbSplit.get(2),	"original");//	afficher	le	plan	"rouge"
+        
+        Mat	gray	=	new	Mat(image.size());	
+        opencv_imgproc.cvtColor(image,gray,opencv_imgproc.CV_BGR2GRAY);		
+        Show(gray,"gray");
+	}
+
+	private static void threshold_erosion(Mat image) {
+		Mat	thresh = new Mat(image.size());	
+        threshold(image,thresh,120,255,THRESH_BINARY_INV);
+        Show(thresh, "thresh");
+        
+        Mat	element5 =	new	Mat(5,	5,	CV_8U,	new	Scalar(1d));
+        Mat	eroded = new	Mat();	erode(thresh,	eroded,	element5);	
+        Mat	opened = new	Mat();	morphologyEx(thresh,	opened,	MORPH_OPEN,	element5);
+        Show(eroded,"eroded");
+        Show(opened,"opened");
+	}
 	
 	@SuppressWarnings("unused")
 	private static void myLut(Mat image, Mat lut) {
-
-	/*
-		UByteIndexer idx = (UByteIndexer) image.createIndexer();
-		TreeMap<Integer, Integer> tempResults = new TreeMap<Integer, Integer>();
-
-		for (int i = 0; i <= 255; i++) {
-			tempResults.put(i, 0);
-		}
-		
-		Float[] results = new Float[256];
-		LUT(image,results, dest);
-
-		for (int i = 0; i < image.rows(); i++) {
-			for (int j = 0; j < image.cols(); j++) {
-				int pix = idx.get(i, j);
-				if (!tempResults.containsKey(pix)) {
-					tempResults.put(pix, 1);
-				} else {
-					tempResults.replace(pix, (tempResults.get(pix) + 1));
-				}
-			}
-		}
-		*/
 		Mat dest = new Mat ();
 		UByteIndexer idx = (UByteIndexer) lut.createIndexer();
 		 for (int i = 0; i<256; i++){	

@@ -14,6 +14,8 @@ import static org.bytedeco.javacpp.opencv_features2d.drawMatches;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_face.LBPHFaceRecognizer;
+import static org.bytedeco.javacpp.opencv_face.createLBPHFaceRecognizer;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -25,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.Loader;
@@ -54,6 +57,7 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter.ToMat;
 import static org.bytedeco.javacpp.opencv_core.CV_8UC3;
 import static org.bytedeco.javacpp.opencv_core.CV_8U;
+import static org.bytedeco.javacpp.opencv_core.CV_32SC1;
 import static org.bytedeco.javacpp.opencv_core.kmeans;
 import static org.bytedeco.javacpp.opencv_core.CV_32F;
 import static org.bytedeco.javacpp.opencv_core.KMEANS_PP_CENTERS;
@@ -318,7 +322,7 @@ public class LoadAndDisplay {
 		/////////////////////////////////////////////////
 
 		//////////////////////////////// FACE RECOGNITION
-		//faceRecognitionRunTest();
+		faceRecognitionRunTest();
 		////////////////////////////////////////////////
 		
 		/////////////////////////////// LUT
@@ -365,8 +369,8 @@ public class LoadAndDisplay {
 		//
 		////////////////////////////////////////////////
 		}
-
-	private static void split_and_gray(Mat image) {
+		
+private static void split_and_gray(Mat image) {
 		MatVector	rgbSplit	=	new	MatVector();	
         split(image,	rgbSplit);	
         Show(rgbSplit.get(2),	"original");//	afficher	le	plan	"rouge"
@@ -402,8 +406,8 @@ public class LoadAndDisplay {
 
 	private static void faceRecognitionRunTest() throws Exception {
 		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
-		String trainingDir = "resources/Groupe-gates.png";
-//		FaceRecognizer faceRecognizer = createLBPHFaceRecognizer();
+		String trainingDir = "resources/training";
+		FaceRecognizer faceRecognizer = createLBPHFaceRecognizer();
 //		FaceRecognizer	faceRecognizer	=	createFisherFaceRecognizer();
 //	 	FaceRecognizer	faceRecognizer	= createEigenFaceRecognizer();
 
@@ -417,29 +421,38 @@ public class LoadAndDisplay {
 		File[] imageFiles = root.listFiles(imgFilter);
 		MatVector images = new MatVector(imageFiles.length);
 
-		Mat labels = new Mat(imageFiles.length, 1);
+		Mat labels = new Mat(imageFiles.length,1, CV_32SC1);
 		IntBuffer labelsBuf = labels.createBuffer();
 		int counter = 0;
 		for (File im : imageFiles) {
-
 			Mat img = imread(im.getAbsolutePath(), CV_LOAD_IMAGE_GRAYSCALE);
-			// System.out.println(Integer.parseInt(im.getName().split("-.")[0]));
-			int label = Integer.parseInt(im.getName().split("-.")[0]);
+			System.out.println("say hi");
+			//System.out.println(Integer.parseInt(im.getName().split("_")[0]));
+			int label = Integer.parseInt(im.getName().split("_")[0]);
 			images.put(counter, img);
 			labelsBuf.put(counter, label);
 			counter++;
-//				System.out.println("path:"	+	counter);
+			System.out.println("path:"	+	counter);
 		}
-	
+		//entrainement image et label
+		faceRecognizer.train(images,labels);	
+		faceRecognizer.save("training.xml");
 
-		images.close();
-		labels.close();
+		//images.close();
+		//labels.close();
+		Mat	imageMat	=	imread("resources/455x520.png");
+		Mat videoMatGray = new Mat();
+        // Convert the current frame to grayscale:
+        cvtColor(imageMat, videoMatGray, COLOR_BGRA2GRAY);
+		int	prediction	=	faceRecognizer.predict(videoMatGray);	
+		System.out.println("prediction:"	+	prediction);
 	}
 
 	@SuppressWarnings("unused")
 	private static void faceDetectionRunTest() throws Exception {
 
 		Mat groupFaces = imread("resources/Group-Faces.jpg");
+		//Mat groupFaces = imread("data/thibault.jpg");
 
 		CascadeClassifier face_cascade = new CascadeClassifier("resources/haarcascade_frontalface_default.xml");
 		CascadeClassifier eye_cascade = new CascadeClassifier("resources/frontalEyes35x16.xml");

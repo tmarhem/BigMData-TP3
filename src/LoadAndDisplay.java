@@ -426,7 +426,7 @@ private static void split_and_gray(Mat image) {
 		int counter = 0;
 		for (File im : imageFiles) {
 			Mat img = imread(im.getAbsolutePath(), CV_LOAD_IMAGE_GRAYSCALE);
-			System.out.println("say hi");
+			//System.out.println("say hi");
 			//System.out.println(Integer.parseInt(im.getName().split("_")[0]));
 			int label = Integer.parseInt(im.getName().split("_")[0]);
 			images.put(counter, img);
